@@ -24,11 +24,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    padding: 15,
     borderRadius: 10,
     marginVertical: 5,
-    marginHorizontal:10,
-    height: 60,
+    marginHorizontal: 10,
+    height: 55,
   },
   shadowAndroid: {
     elevation: 6,

@@ -8,7 +8,7 @@ import {
   Image,
 } from "react-native";
 import { StyleSheet } from "react-native";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { login } from "../reducers/user";
 import React, { useState } from "react";
 import { PATH } from "../utils/path";
@@ -18,7 +18,6 @@ import { LinearGradient } from "expo-linear-gradient";
 export default function SigninScreen({ navigation }) {
   //1.Déclaration des états et imports reducers si besoin
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.user.value);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loginErrorMessage, setLoginErrorMessage] = useState(null);
@@ -35,22 +34,20 @@ export default function SigninScreen({ navigation }) {
         if (!data.result) {
           setLoginErrorMessage(data.error);
         } else {
-          //console.log("data renvoyée lors du login", data);
           dispatch(
             login({
               token: data.token,
               email: data.email,
               firstName: data.firstName,
               balance: data.balance,
-              userId: data.userId,
             })
           );
 
           navigation.navigate("TabNavigator", {
             screen: "EventsListScreen",
           });
-          setEmail('');
-          setPassword('');
+          setEmail("");
+          setPassword("");
           setLoginErrorMessage(null);
         }
       });

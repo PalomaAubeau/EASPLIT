@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Platform,
-  Image,
   TextInput,
   Text,
   TouchableOpacity,
@@ -11,11 +10,11 @@ import {
   StyleSheet,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useSelector, useDispatch } from "react-redux";
-import Input from "../components/Input";
-import DropdownMenu from "../components/DropdownMenu";
-import GuestInput from "../components/GuestInput";
-import GuestCard from "../components/GuestCard";
+import { useSelector } from "react-redux";
+import Header from "../components/Common/Header";
+import Input from "../components/CreateScreenComponents/Input";
+import GuestInput from "../components/CreateScreenComponents/GuestInput";
+import GuestCard from "../components/CreateScreenComponents/GuestCard";
 import MaskedView from "@react-native-masked-view/masked-view";
 import globalStyles from "../styles/globalStyles";
 import { PATH } from "../utils/path.js";
@@ -159,18 +158,13 @@ export default function CreateEventScreen({ navigation }) {
         shareAmount: parseFloat(amountPerPart),
       };
 
-      console.log("Request body:", requestBody);
-
-      const eventResponse = await fetch(
-        `${PATH}/events/create-event/${user.token}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
+      const eventResponse = await fetch(`${PATH}/events/create/${user.token}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
 
       if (!eventResponse.ok) {
         throw new Error("Failed to create event");
@@ -246,6 +240,7 @@ export default function CreateEventScreen({ navigation }) {
       start={[0.2, 0.2]}
       end={[0.8, 0.8]}
     >
+      <Header />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.select({ ios: 80, android: 60 })}
@@ -256,13 +251,6 @@ export default function CreateEventScreen({ navigation }) {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            <View style={styles.headerContainer}>
-              <Image
-                source={require("../assets/EASPLIT-NOIR.png")}
-                style={styles.logo}
-              />
-              <DropdownMenu />
-            </View>
             <MaskedView
               style={{ flexDirection: "row" }}
               maskElement={

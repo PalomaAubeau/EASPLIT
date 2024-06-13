@@ -15,10 +15,10 @@ const cloudinary = require("cloudinary").v2;
 const uniqid = require("uniqid");
 const fs = require("fs");
 
-const { addUserToGuest } = require("./users");
+//const { addUserToGuest } = require("./users");
 
 // Route utilisée dans le screen CreateEventScreen
-router.post("/create-event/:token", async (req, res) => {
+router.post("/create/:token", async (req, res) => {
   // on récupère le token de l'utilisateur
   const token = req.params.token;
   User.findOne({ token })
@@ -145,7 +145,7 @@ router.post("/create-event/:token", async (req, res) => {
 });
 
 //Route utilisée dans le screen EventScreen (récupération des données d'un évènement ciblé)
-router.get("/event/:id", (req, res) => {
+router.get("/:id", (req, res) => {
   Event.findById(req.params.id)
     .populate("organizer", ["firstName", "email"])
     .populate("guests.userId", [
@@ -169,7 +169,7 @@ router.get("/event/:id", (req, res) => {
 });
 
 //Route utilisée dans le screen EventsListScreen (récupération de la liste des évènements grâce au token de l'user)
-router.get("/user-events/:token", (req, res) => {
+router.get("/user/:token", (req, res) => {
   User.findOne({ token: req.params.token })
     .populate("events")
     .then((user) => {
@@ -181,25 +181,7 @@ router.get("/user-events/:token", (req, res) => {
     });
 });
 
-// route pour fetch l'organisateur d'un évènement - non utilisée
-router.get("/organizer/:eventId", (req, res) => {
-  console.log("Received request for event:", req.params.eventId);
-
-  Event.findById(req.params.eventId)
-    .populate("organizer")
-    .then((event) => {
-      if (!event) {
-        console.log("Event not found:", req.params.eventId);
-        res.json({ result: false, error: "Évènement non trouvé" });
-        return;
-      }
-      console.log("Found event:", event);
-      res.json({ result: true, organizer: event.organizer });
-    });
-});
-
 //Route pour upload les fichiers
-//route test beranger
 router.post("/upload", async (req, res) => {
   try {
     if (!req.files || !req.files.photoFromFront) {

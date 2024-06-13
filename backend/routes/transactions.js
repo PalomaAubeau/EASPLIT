@@ -32,123 +32,8 @@ router.get("/expenses/:eventId", async (req, res) => {
   }
 });
 
-// Route pour le rechargement du solde d'un utilisateur - non utilisée
-router.post("/create/reload", (req, res) => {
-  // Vérification du corps de la requête
-  if (!checkBody(req.body, ["emitter", "recipient", "type", "amount"])) {
-    return res.status(400).json({ error: "Corps invalide" });
-  }
-  // Création de la transaction
-  const transaction = new Transaction(req.body);
-  // Sauvegarde de la transaction
-  transaction.save().then(() => {
-    // Mise à jour du solde de l'utilisateur et ajout de la transaction
-    User.findByIdAndUpdate(
-      req.body.emitter,
-      {
-        $inc: { balance: Number(req.body.amount) },
-        $push: { transactions: transaction._id },
-      },
-      { new: true }
-    ).then((user) => {
-      // Vérification de l'existence de l'utilisateur
-      if (!user) {
-        return res.status(400).json({ error: "Utilisateur non trouvé" });
-      }
-      // Vérification du solde
-      if (user.balance < 0) {
-        return res.status(400).json({ error: "Fonds insuffisants" });
-      }
-      res.json({ response: true, transaction });
-    });
-  });
-});
-
-// Route pour créer un paiement - non utilisée
-router.post("/create/payment", (req, res) => {
-  // Vérification du corps de la requête
-  if (
-    !checkBody(req.body, ["emitter", "name", "amount", "recipient", "type"])
-  ) {
-    return res.status(400).json({ error: "Corps invalide" });
-  }
-  // Création de la transaction
-  const transaction = new Transaction(req.body);
-  // Sauvegarde de la transaction
-  transaction.save().then(() => {
-    // Mise à jour du solde de l'utilisateur et ajout de la transaction
-    User.findByIdAndUpdate(
-      req.body.emitter,
-      {
-        $inc: { balance: -Number(req.body.amount) },
-        $push: { transactions: transaction._id },
-      },
-      { new: true }
-    ).then((user) => {
-      // Vérification de l'existence de l'utilisateur
-      if (!user) {
-        return res.status(400).json({ error: "Utilisateur non trouvé" });
-      }
-      // Vérification du solde
-      if (user.balance < 0) {
-        return res.status(400).json({ error: "Fonds insuffisants" });
-      }
-      res.json({ response: true, transaction });
-    });
-  });
-});
-
-// Route pour créer un remboursement - non utilisée
-router.post("/create/refund", (req, res) => {
-  // Vérification du corps de la requête
-  if (!checkBody(req.body, ["emitter", "type"])) {
-    return res.status(400).json({ error: "Corps invalide" });
-  }
-  // Création de la transaction
-  const transaction = new Transaction(req.body);
-  // Sauvegarde de la transaction
-  transaction.save().then(() => {
-    // Recherche de l'événement
-    Event.findById(req.body.emitter).then((event) => {
-      // Vérification de l'existence de l'événement
-      if (!event) {
-        return res.status(400).json({ error: "Événement non trouvé" });
-      }
-      // Vérification du nombre de participants
-      if (event.shareAmount === 0) {
-        return res.status(400).json({ error: "Aucun invité à rembourser" });
-      }
-      // Calcul du montant par part
-      const perShareAmount = Number(event.totalSum || 0) / event.shareAmount;
-      // Mise à jour du solde de chaque invité et ajout de la transaction
-      let promises = event.guests.map((guest) => {
-        return User.findByIdAndUpdate(
-          guest.userId,
-          {
-            $inc: { balance: perShareAmount * guest.share },
-            $push: { transactions: transaction._id },
-          },
-          { new: true }
-        );
-      });
-      // Mise à jour de l'événement après le remboursement
-      Promise.all(promises).then(() => {
-        event.totalSum = 0;
-        // Vérification de l'opération
-        if (isNaN(event.totalSum)) {
-          return res.status(400).json({ error: "Opération invalide" });
-        }
-        // Ajout de la transaction à l'événement
-        event.transactions.push(transaction._id);
-        // Sauvegarde de l'événement
-        event.save().then(() => res.json({ response: true, transaction }));
-      });
-    });
-  });
-});
-
 // Route pour créer une dépense
-router.post("/create/expense", (req, res) => {
+router.post("/expense", (req, res) => {
   // Vérification du corps de la requête
   if (!checkBody(req.body, ["emitter", "amount", "type"])) {
     return res.status(400).json({ error: "Corps invalide" });
@@ -181,7 +66,7 @@ router.post("/create/expense", (req, res) => {
 });
 
 // Route pour obtenir les transactions d'un utilisateur
-router.get("/userTransactions/:token", async (req, res) => {
+router.get("/user-transactions/:token", async (req, res) => {
   try {
     const user = await User.findOne({ token: req.params.token }).populate(
       "transactions"
@@ -200,31 +85,11 @@ router.get("/userTransactions/:token", async (req, res) => {
   }
 });
 
-// Route pour obtenir les détails d'une transaction spécifique - non utilisée
-router.get("/:transactionId", async (req, res) => {
-  try {
-    // Recherche de la transaction
-    const transaction = await Transaction.findById(
-      req.params.transactionId
-    ).populate("eventId");
-    // Vérification de l'existence de la transaction
-    if (!transaction) {
-      return res.json({ response: false, error: "Transaction non trouvée" });
-    }
-    // Renvoi des détails de la transaction
-    res.json({ response: true, transaction });
-  } catch (error) {
-    // Gestion des erreurs
-    res.json({ response: false, error: error.message });
-  }
-});
-
 //Route pour créer un paiement sur un évènement, ajouter la transaction dans la BDD (collections transactions et user), modifier statut du paiment de l'utilisateur sur EventScreen
-router.post("/create/payment/:token/:eventUniqueId", async (req, res) => {
-  const userCall = await User.findOne({ token: req.params.token });
-  const eventCall = await Event.findOne({
-    eventUniqueId: req.params.eventUniqueId,
-  })
+router.post("/payment", async (req, res) => {
+  const { token, eventId, type } = req.body;
+  const userCall = User.findOne({ token });
+  const eventCall = Event.findById(eventId) //dans EventCard => eventId: event._id
     .populate("guests.userId", [
       "userId",
       "firstName",
@@ -241,17 +106,17 @@ router.post("/create/payment/:token/:eventUniqueId", async (req, res) => {
   }
 
   if (!event) {
-    res.json({ result: false, error: "Evènement non trouvé" });
+    res.json({ result: false, error: "Evénement non trouvé" });
     return;
   }
 
   const shareAmountPerGuest = event.totalSum / event.shareAmount;
 
-  const isSamePerson = event.guests.find(
+  const samePerson = event.guests.find(
     (guest) => String(guest.userId._id) === String(user._id)
   );
-  if (isSamePerson) {
-    const userDue = shareAmountPerGuest * isSamePerson.share;
+  if (samePerson) {
+    const userDue = shareAmountPerGuest * samePerson.share;
     if (user.balance < Number(userDue)) {
       res.json({ result: false, error: "Veuillez recharger votre compte" });
       return;
@@ -260,130 +125,68 @@ router.post("/create/payment/:token/:eventUniqueId", async (req, res) => {
     // Création de la transaction
     const userPayment = new Transaction({
       amount: userDue,
-      //date: new Date(),
-      type: req.body.type,
+      type,
       eventId: event._id,
       emitter: user._id,
       recipient: event._id,
       name: event.name,
     });
-    // Sauvegarde de la transaction
-    userPayment.save().then(async (transactionSaved) => {
-      await Event.updateOne(
-        {
-          eventUniqueId: event.eventUniqueId,
-          "guests.userId": isSamePerson.userId._id,
-        },
-        { $set: { "guests.$.hasPaid": true } }
-      );
-      await User.updateOne(
-        { _id: user._id },
-        {
-          $push: { transactions: userPayment._id },
-          $set: { balance: balanceSetForUser },
-        }
-      );
-      // console.log("test de ce que renvoie userPayment", transactionSaved);
-      res.json({ result: true, transactionSaved });
-    });
+    // Sauvegarde de la transaction et mise à jour des documents des autres collections
+    const transactionSaved = await userPayment.save();
+
+    const updatedUserCall = User.updateOne(
+      { _id: user._id },
+      {
+        $push: { transactions: userPayment._id },
+        $set: { balance: balanceSetForUser },
+      }
+    );
+    const updatedEventCall = Event.updateOne(
+      {
+        _id: event._id,
+        "guests.userId": samePerson.userId._id,
+      },
+      { $set: { "guests.$.hasPaid": true } }
+    );
+
+    await Promise.all([updatedUserCall, updatedEventCall]);
+    res.json({ result: true, transactionSaved });
   }
 });
 
-//TEST//
-
 // Route pour recharger le solde et créer une transaction
 router.put("/reload/:token", async (req, res) => {
-  const { emitter, recipient, type, amount } = req.body;
-  console.log(req.body);
-  // Vérification complète des paramètres de la requête
-  if (!emitter || !amount) {
-    console.log("Requête invalide :", req.body); // Log des données reçues pour le débogage
-    return res.status(400).json({ error: "Corps invalide" });
+  const amount = req.body.amount;
+
+  if (isNaN(amount) || amount <= 0) {
+    return res.status(400).json({ error: "Montant invalide" });
   }
 
   try {
-    // Ajout d'un log pour vérifier l'émetteur reçu
-    console.log("Emetteur reçu:", emitter);
-
-    // Recherche de l'utilisateur
-    const user = await User.findOne({ token: emitter });
-
-    // Ajout d'un log pour vérifier l'utilisateur trouvé
+    const user = await User.findOne({ token: req.params.token });
     if (!user) {
-      console.log("Utilisateur non trouvé pour le token:", emitter);
       return res.status(404).json({ error: "Utilisateur non trouvé" });
-    } else {
-      console.log("Utilisateur trouvé:", user);
     }
-
-    // Calcul du nouveau solde
-    const newBalance = user.balance + Number(amount);
-
-    // Création de la transaction
+    const newBalance = Number(user.balance) + Number(amount);
     const transaction = new Transaction({
-      emitter,
-      recipient: `${emitter}`,
+      emitter: user._id,
+      recipient: user._id,
       type: "reload",
       amount,
     });
 
-    // Mise à jour de la balance de l'utilisateur
     await User.updateOne(
-      { token: emitter },
+      { _id: user._id },
       {
         $set: { balance: newBalance },
         $push: { transactions: transaction._id },
       }
     );
-
-    // Sauvegarde de la transaction dans la base de données
     await transaction.save();
-
-    // Réponse avec la transaction en json
-    res.json({ response: true, data: transaction });
+    res.json({ result: true, transaction });
   } catch (error) {
-    console.error("Erreur dans /transaction/reload2:", error);
     res.status(500).json({ error: "Erreur serveur" });
   }
 });
 
-// module.exports = router;
-
 module.exports = router;
-
-// // Route pour recharger le solde et créer une transaction
-// router.put('/transaction/reload3',(req, res) => {
-//   const { emitter, recipient, type, amount } = req.body;
-
-//   if (!amount) {
-//     return res.status(400).json({ error: 'Corps invalide' });
-//   }
-//  console.log(emitter)
-//   // Recherche de l'utilisateur
-//   const user = User.findOne({token: emitter}).then(user=>{//dans ce cas l'emitter est le token du user dans la bdd
-//     // Calcul du nouveau solde
-//     const newBalance = user.balance + Number(amount);
-
-//   });
-
-//   // Création de la transaction
-//  const transaction = new Transaction({ emitter, recipient: `${emitter}`, type: 'reload', amount });
-//   // const transaction = new Transaction({ emitter, recipient, type, amount });
-
-//   // Mise à jour de la balance de l'utilisateur
-//    User.updateOne(
-//     { token: emitter },
-//     { $set: { balance: newBalance }, $push: { transactions: transaction._id } }
-//   );
-
-//   // Sauvegarde de la transaction dans la bdd transaction
-//    transaction.save()
-//    .then(() =>{
-//     res.json({result: true, data: data})
-//    });
-
-//   // Réponse avec la transaction en json
-//   res.json({ response: true, data: transaction });
-// });
-
-// module.exports = router;

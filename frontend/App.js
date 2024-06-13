@@ -5,11 +5,10 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 // import reducers pour le store redux
 import user from "./reducers/user.js";
-import event from "./reducers/event.js";
 //Librairie Ionicons :
 import Icon from "react-native-vector-icons/Ionicons";
-import SvgChampagne from "./components/SvgChampagne.js";
-import PlusButton from "./components/plusButton.js";
+import SvgChampagne from "./components/Common/SvgChampagne.js";
+import PlusButton from "./components/Common/plusButton.js";
 // import police/font
 import { useFonts } from "expo-font";
 // mise en place redux
@@ -28,7 +27,7 @@ import SuccessScreen from "./screens/SuccessScreen.js";
 // LogBox.ignoreLogs(["Warning: ..."]); // Ignore log notification by message
 // LogBox.ignoreAllLogs(); //Ignore all log notifications
 
-const store = configureStore({ reducer: { user, event } });
+const store = configureStore({ reducer: { user } });
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
