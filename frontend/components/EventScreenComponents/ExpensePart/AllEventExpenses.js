@@ -15,31 +15,39 @@ const AllEventExpenses = ({ expenses }) => {
 
   return (
     <View>
-      {[...expenses].reverse().map((expense) => (
-        <View
-          key={expense._id}
-          style={[
-            styles.listCard,
-            Platform.OS === "ios" ? styles.shadowIOS : styles.shadowAndroid,
-          ]}
-        >
-          <Text style={styles.textCurrentListCard}>{expense.name}</Text>
-          <View style={styles.leftPartInsideCard}>
-            <Text style={{ ...styles.textCurrentListCard, marginRight: 30 }}>
-              {expense.amount}€
-            </Text>
-            <TouchableOpacity onPress={() => handleOpenModal(expense.invoice)}>
-              <Icon name="document-text-sharp" size={25} color="#4E3CBB" />
-            </TouchableOpacity>
-            <SeeExpenseModal
-              expense={expense}
-              imageUri={selectedImage}
-              modalVisible={modalVisible}
-              setModalVisible={setModalVisible}
-            />
+      {expenses.length === 0 ? (
+        <Text style={styles.message}>
+          Aucune dépense à afficher pour le moment
+        </Text>
+      ) : (
+        [...expenses].reverse().map((expense) => (
+          <View
+            key={expense._id}
+            style={[
+              styles.listCard,
+              Platform.OS === "ios" ? styles.shadowIOS : styles.shadowAndroid,
+            ]}
+          >
+            <Text style={styles.textCurrentListCard}>{expense.name}</Text>
+            <View style={styles.leftPartInsideCard}>
+              <Text style={{ ...styles.textCurrentListCard, marginRight: 30 }}>
+                {expense.amount}€
+              </Text>
+              <TouchableOpacity
+                onPress={() => handleOpenModal(expense.invoice)}
+              >
+                <Icon name="document-text-sharp" size={25} color="#4E3CBB" />
+              </TouchableOpacity>
+              <SeeExpenseModal
+                expense={expense}
+                imageUri={selectedImage}
+                modalVisible={modalVisible}
+                setModalVisible={setModalVisible}
+              />
+            </View>
           </View>
-        </View>
-      ))}
+        ))
+      )}
     </View>
   );
 };
