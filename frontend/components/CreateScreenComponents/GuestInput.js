@@ -1,31 +1,31 @@
-import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useState } from "react";
+import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 const GuestInput = ({ onAddGuest }) => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
 
   const handleAddGuest = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (email && emailRegex.test(email)) {
       const emailLowercase = email.toLowerCase();
       onAddGuest({ email: emailLowercase, parts: 1 });
-      setEmail('');
+      setEmail("");
     } else {
-      console.log('Invalid email');
+      console.log("Invalid email");
     }
   };
 
   return (
     <View style={[styles.inputWrapper, styles.shadowAndroid]}>
       <View style={styles.inputContainer}>
-      
         <TextInput
           style={styles.inputField}
           placeholder="Email"
           value={email}
           onChangeText={setEmail}
-          keyboardType='email-address'
+          keyboardType="email-address"
+          autoCapitalize="none"
         />
       </View>
       <TouchableOpacity onPress={handleAddGuest}>
@@ -49,9 +49,9 @@ const styles = StyleSheet.create({
   },
   inputField: {
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: "#ddd",
     fontSize: 16,
-    color: '#4E3CBB',
+    color: "#4E3CBB",
     paddingRight: 0,
     fontFamily: "CodecPro-Regular",
     marginBottom: 10,
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   shadowIOS: {
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 3,

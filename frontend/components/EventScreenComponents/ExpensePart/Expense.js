@@ -2,19 +2,18 @@ import { StyleSheet } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
 import {
   View,
-  Text,
   TouchableOpacity,
   Platform,
   TextInput,
-  Modal,
-  KeyboardAvoidingView,
+  ScrollView,
+  Text,
 } from "react-native";
 import { useState, useEffect } from "react";
 import { PATH } from "../../../utils/path";
 
-import * as ImagePicker from "expo-image-picker";
 import AllEventExpenses from "../ExpensePart/AllEventExpenses";
 import RecapExpense from "../ExpensePart/RecapExpense";
+import AddExpenseModal from "./AddExpenseModal";
 
 const Expense = ({ user, event }) => {
   const [expenses, setExpenses] = useState([]);
@@ -22,8 +21,10 @@ const Expense = ({ user, event }) => {
   const [expenseAmount, setExpenseAmount] = useState("");
   const [urlImage, setUrlImage] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
-
   const isOrganizer = event.organizer && event.organizer.email === user.email;
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [remainingBalance, setRemainingBalance] = useState(event.totalSum);
+  const [totalExpenses, setTotalExpenses] = useState(0);
 
   const fetchExpenses = async () => {
     try {
@@ -39,95 +40,42 @@ const Expense = ({ user, event }) => {
     }
   };
 
-  // Besoin d'attendre que le fetch de l'event (async/await) soit charchgé pour pouvoir faire le fetch des dépenses, sinon l'event est undefined
+  // Attention: Besoin d'attendre que le fetch de l'event (async/await) soit charchgé pour pouvoir faire le fetch des dépenses, sinon l'event est undefined
   useEffect(() => {
     if (event) {
       fetchExpenses();
     }
   }, [event]);
 
-  const saveImage = async (image) => {
-    try {
-      setModalVisible(false);
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const takePhoto = async () => {
-    try {
-      await ImagePicker.requestCameraPermissionsAsync();
-      let result = await ImagePicker.launchCameraAsync({
-        cameraType: ImagePicker.CameraType.back,
-        allowsEditing: true,
-        aspect: [3, 5],
-        quality: 1,
-      });
-      if (!result.canceled) {
-        await saveImage(result.assets[0].uri);
-        const formData = new FormData();
-
-        formData.append("photoFromFront", {
-          uri: result.assets[0].uri,
-          name: "photo.jpg",
-          type: "image/jpeg",
-        });
-
-        const response = await fetch(`${PATH}/events/upload`, {
-          method: "POST",
-          body: formData,
-        });
-        const data = await response.json();
-        if (data.result) {
-          setUrlImage(data.url);
-          console.log("Image URL:", data.url);
-        } else {
-          console.error("Error uploading image:", data.error);
-        }
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const choosePhotoFromLibrary = async () => {
-    try {
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-      let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [3, 5],
-        quality: 1,
-      });
-      if (!result.canceled) {
-        await saveImage(result.assets[0].uri);
-        const formData = new FormData();
-
-        formData.append("photoFromFront", {
-          uri: result.assets[0].uri,
-          name: "photo.jpg",
-          type: "image/jpeg",
-        });
-
-        const response = await fetch(`${PATH}/events/upload`, {
-          method: "POST",
-          body: formData,
-        });
-        const data = await response.json();
-        if (data.result) {
-          setUrlImage(data.url);
-          console.log("Image URL:", data.url);
-        } else {
-          console.error("Error uploading image:", data.error);
-        }
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  // S'arrurer que la balance est bien remise à jour chaque fois que les dépenses sont mises à jour
+  useEffect(() => {
+    const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+    setTotalExpenses(total);
+    setRemainingBalance(event.totalSum - total);
+  }, [expenses, event.totalSum]);
 
   const submitExpense = async () => {
     try {
+      // Pour éviter un fetch inutile, vérifier les champs avant l'envoie
+      if (!expenseName) {
+        setErrorMessage("Veuillez donner un nom à votre dépense");
+        return;
+      }
+      if (!expenseAmount) {
+        setErrorMessage("Veuillez ajouter le montant de votre dépense");
+        return;
+      }
+
+      if (!urlImage) {
+        setErrorMessage("Veuillez ajouter une photo");
+        return;
+      }
+
+      if (Number(expenseAmount) > remainingBalance) {
+        setErrorMessage("Fonds insuffisants pour cette dépense");
+        return;
+      }
+
       const requestBody = {
         emitter: event._id,
         amount: Number(expenseAmount),
@@ -149,7 +97,7 @@ const Expense = ({ user, event }) => {
         fetchExpenses();
         setExpenseName("");
         setExpenseAmount("");
-        setUrlImage("");
+        setErrorMessage("");
       } else {
         console.error("Error in response:", data.message);
       }
@@ -159,19 +107,21 @@ const Expense = ({ user, event }) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
-    >
-      <View style={{ flex: 1 }}>
-        <AllEventExpenses expenses={expenses} />
-        {isOrganizer && (
-          <View
-            style={[
-              { ...styles.listCard, marginVertical: 10 },
-              Platform.OS === "ios" ? styles.shadowIOS : styles.shadowAndroid,
-            ]}
-          >
+    <View>
+      <View style={{ height: 170, marginTop: 10, marginBottom: 30 }}>
+        <ScrollView showsVerticalScrollIndicator={true}>
+          <AllEventExpenses expenses={expenses} />
+        </ScrollView>
+      </View>
+
+      {isOrganizer && (
+        <View
+          style={[
+            { ...styles.addCard },
+            Platform.OS === "ios" ? styles.shadowIOS : styles.shadowAndroid,
+          ]}
+        >
+          <View style={styles.addInRow}>
             <TextInput
               style={styles.textAddingCard}
               placeholder="Nom  "
@@ -185,13 +135,19 @@ const Expense = ({ user, event }) => {
                 keyboardType="numeric"
                 value={expenseAmount}
                 onChangeText={(text) => {
+                  // Vérifie si le texte contient un point décimal
                   if (text.includes(".") && text.split(".")[1].length > 2) {
+                    // Si le texte contient un point décimal et que la partie décimale a plus de 2 chiffres,
+                    // on tronque le texte pour garder seulement deux chiffres après le point décimal.
                     const truncatedText = text.substring(
                       0,
                       text.indexOf(".") + 3
                     );
+                    // Met à jour l'état avec le texte tronqué
                     setExpenseAmount(truncatedText);
                   } else if (!isNaN(text)) {
+                    // Si le texte est un nombre valide (isNaN renvoie false pour les nombres valides),
+                    // on met à jour l'état avec le texte saisi.
                     setExpenseAmount(text);
                   }
                 }}
@@ -199,81 +155,38 @@ const Expense = ({ user, event }) => {
               <TouchableOpacity onPress={() => setModalVisible(true)}>
                 <Icon name="document-text-sharp" size={25} color="#EB1194" />
               </TouchableOpacity>
-
-              <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => {
-                  setModalVisible(!modalVisible);
-                }}
-              >
-                <View style={styles.centeredView}>
-                  <View style={styles.modalView}>
-                    <TouchableOpacity
-                      style={[styles.button, styles.buttonChosePicture]}
-                      onPress={() => takePhoto()}
-                    >
-                      <Text style={styles.textStyleChoose}>
-                        Prendre une photo
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[styles.button, styles.buttonChosePicture]}
-                      onPress={() => choosePhotoFromLibrary()}
-                    >
-                      <Text style={styles.textStyleChoose}>
-                        Choisir une photo de la bibliothèque
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[styles.button, styles.buttonClose]}
-                      onPress={() => setModalVisible(!modalVisible)}
-                    >
-                      <Text style={styles.textStyle}>Fermer</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </Modal>
-              <TouchableOpacity onPress={submitExpense}>
-                <Icon name="add-circle" size={30} color="#EB1194"></Icon>
-              </TouchableOpacity>
+              <AddExpenseModal
+                modalVisible={modalVisible}
+                setModalVisible={setModalVisible}
+                setUrlImage={setUrlImage}
+              />
             </View>
           </View>
-        )}
-        <RecapExpense event={event} expenses={expenses} />
-      </View>
-    </KeyboardAvoidingView>
+          <View style={{ alignItems: "center", marginTop: 5 }}>
+            <TouchableOpacity onPress={submitExpense}>
+              <Icon name="add-circle" size={45} color="#EB1194"></Icon>
+            </TouchableOpacity>
+            {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
+          </View>
+        </View>
+      )}
+      <RecapExpense
+        totalSum={event.totalSum}
+        remainingBalance={remainingBalance}
+        totalExpenses={totalExpenses}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  //MAINS CONTAINERS
-  scrollView: {
-    marginBottom: 20,
-  },
-  participer: {
-    height: 25,
-  },
-  button: {
-    paddingHorizontal: 10,
-    width: "50%",
-  },
-  selectedButton: {
-    backgroundColor: "#4E3CBB",
-    borderRadius: 5,
-  },
-  listCard: {
+  addCard: {
     backgroundColor: "#FFFFFF",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     borderRadius: 10,
-    marginBottom: 15,
-    height: 60,
+    marginBottom: 5,
+    height: 120,
     marginHorizontal: 10,
   },
   shadowAndroid: {
@@ -288,185 +201,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.27,
     shadowRadius: 4.65,
   },
+  addInRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   leftPartInsideCard: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  recapCard: {
-    backgroundColor: "#FFFFFF",
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 50,
-    height: 200,
-    marginHorizontal: 10,
-    marginTop: 15,
-  },
-  recapCardRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  amount: {
-    alignItems: "center",
-    justifyContent: "center",
-    margin: 20,
-  },
-  RecapEventCard: {
-    paddingHorizontal: 20,
-    justifyContent: "center",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 10,
-    marginBottom: 20,
-    height: 150,
-  },
-  textGoBack: {
-    fontFamily: "CodecPro-ExtraBold",
-    color: "#4E3CBB",
-    fontSize: 20,
-    marginLeft: 20,
-  },
-  textButton: {
-    color: "#FFFFFF",
-    fontFamily: "CodecPro-ExtraBold",
-    fontSize: 16,
-    textAlign: "center",
-  },
-  textCurrentListCard: {
-    fontFamily: "CodecPro-Regular",
-    color: "#4E3CBB",
-    fontSize: 16,
   },
   textAddingCard: {
     fontFamily: "CodecPro-ExtraBold",
     color: "#EB1194",
     fontSize: 16,
   },
-  message: {
-    fontFamily: "CodecPro-Regular",
-    color: "#EB1194",
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 16,
-  },
-  textRecap: {
-    fontFamily: "CodecPro-Regular",
-    color: "#4E3CBB",
-    fontSize: 16,
-    marginTop: 10,
-  },
-  textRecapAmount: {
-    fontFamily: "CodecPro-ExtraBold",
-    color: "#4E3CBB",
-    fontSize: 20,
-  },
-  textRecapBalance: {
-    fontFamily: "CodecPro-ExtraBold",
-    color: "#EB1194",
-    fontSize: 25,
-  },
-  currentUserText: {
-    fontFamily: "CodecPro-ExtraBold",
-    color: "#4E3CBB",
-    fontSize: 20,
-  },
-  textPaymentRecapLeft: {
-    fontFamily: "CodecPro-ExtraBold",
-    fontSize: 16,
-    color: "#4E3CBB",
-  },
-  textSmallCurrentListCard: {
-    fontFamily: "CodecPro-Regular",
-    color: "#4E3CBB",
-    fontSize: 12,
-  },
   error: {
-    marginTop: 10,
     color: "red",
-  },
-  centeredView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 22,
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 30,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  input: {
-    fontFamily: "CodecPro-ExtraBold",
-    width: 180,
-    borderBottomColor: "#4E3CBB",
-    alignItems: "center",
-    justifyContent: "center",
-    borderBottomWidth: 1,
-    marginBottom: 40,
-    marginTop: 30,
-    fontSize: 20,
-    color: "#4E3CBB",
-    textAlign: "center",
-  },
-
-  buttonClose: {
-    backgroundColor: "#EB1194",
-    marginTop: 20,
-    padding: 15,
-    borderRadius: 10,
-  },
-  buttonChosePicture: {
-    backgroundColor: "#4E3CBB",
-    marginTop: 20,
-    padding: 15,
-    borderRadius: 10,
-    fontSize: 22,
-  },
-  textStyle: {
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  textStyleChoose: {
-    color: "white",
-    fontWeight: "bold",
-    textAlign: "center",
-    fontFamily: "CodecPro-ExtraBold",
-    fontSize: 15, //ou 14 ?
-  },
-  imageContainer: {
-    position: "absolute",
-    marginTop: 20,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  modalContent: {
-    width: 300,
-    padding: 20,
-    backgroundColor: "white",
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  closeImage: {
-    color: "#4E3CBB",
-    fontFamily: "CodecPro-ExtraBold",
-  },
-  image: {
-    width: 250,
-    height: 450,
-    marginBottom: 20,
   },
 });
 

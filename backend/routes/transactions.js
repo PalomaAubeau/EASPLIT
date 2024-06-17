@@ -41,7 +41,6 @@ router.post("/expense", (req, res) => {
   // Création de la transaction
   const transaction = new Transaction(req.body);
   // Sauvegarde de la transaction
-  // Save the transaction
   transaction.save().then(() => {
     // Update the event's balance and add the transaction
     Event.findByIdAndUpdate(

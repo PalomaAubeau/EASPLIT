@@ -1,18 +1,7 @@
 import { StyleSheet } from "react-native";
 import { View, Text, Platform } from "react-native";
 
-const RecapExpense = ({ event, expenses }) => {
-  let remainingBalance = event && event.totalSum ? event.totalSum : 0;
-
-  const totalExpenses = expenses.reduce(
-    (total, expense) => total + Number(expense.amount),
-    0
-  );
-
-  if (remainingBalance > 0) {
-    remainingBalance -= totalExpenses;
-  }
-
+const RecapExpense = ({ totalSum, remainingBalance, totalExpenses }) => {
   return (
     <View
       style={[
@@ -22,7 +11,7 @@ const RecapExpense = ({ event, expenses }) => {
     >
       <View style={styles.recapCardRow}>
         <View style={styles.amount}>
-          <Text style={styles.textRecapAmount}>{event.totalSum}€</Text>
+          <Text style={styles.textRecapAmount}>{totalSum}€</Text>
           <Text style={styles.textRecap}>Budget initial</Text>
         </View>
         <View style={styles.amount}>
@@ -31,10 +20,8 @@ const RecapExpense = ({ event, expenses }) => {
         </View>
       </View>
       <View style={[styles.amount, { marginTop: -10 }]}>
-        <Text style={[styles.textRecapBalance, { marginBottom: 0 }]}>
-          {remainingBalance}€
-        </Text>
-        <Text style={[styles.textRecap, { marginTop: 0 }]}>Solde restant</Text>
+        <Text style={styles.textRecapBalance}>{remainingBalance}€</Text>
+        <Text style={styles.textRecap}>Solde restant</Text>
       </View>
     </View>
   );
@@ -52,6 +39,7 @@ const styles = StyleSheet.create({
   recapCardRow: {
     flexDirection: "row",
     justifyContent: "space-between",
+    marginBottom: 10,
   },
   amount: {
     alignItems: "center",
@@ -62,7 +50,6 @@ const styles = StyleSheet.create({
     fontFamily: "CodecPro-Regular",
     color: "#4E3CBB",
     fontSize: 16,
-    marginTop: 10,
   },
   textRecapAmount: {
     fontFamily: "CodecPro-ExtraBold",

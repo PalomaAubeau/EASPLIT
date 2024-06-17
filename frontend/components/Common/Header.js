@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { logout } from "../../reducers/user";
-import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  Pressable,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 
@@ -22,10 +29,12 @@ const Header = () => {
 
   return (
     <View style={styles.headerContainer}>
-      <Image
-        source={require("../../assets/EASPLIT-NOIR.png")}
-        style={styles.logo}
-      />
+      <Pressable onPress={() => navigation.navigate("Accueil")}>
+        <Image
+          source={require("../../assets/EASPLIT-NOIR.png")}
+          style={styles.logo}
+        />
+      </Pressable>
 
       <View style={styles.menuContainer}>
         <TouchableOpacity onPress={toggleMenu} style={styles.burgerIcon}>

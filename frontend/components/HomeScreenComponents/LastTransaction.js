@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, Text } from "react-native";
 import Transaction from "./TransactionCard";
 import { getUserTransactions } from "../../utils/getUserTransactions";
+import { StyleSheet } from "react-native";
 
 const LastTransactions = ({ user }) => {
   const [loading, setLoading] = useState(true);
@@ -51,6 +52,8 @@ const LastTransactions = ({ user }) => {
     <View>
       {loading ? (
         <ActivityIndicator size="large" color="#4E3CBB" />
+      ) : lastTransactions.length === 0 ? (
+        <Text style={styles.message}>Aucune transaction pour le moment.</Text>
       ) : (
         lastTransactions.map((data) => (
           <Transaction
@@ -64,5 +67,15 @@ const LastTransactions = ({ user }) => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  message: {
+    fontFamily: "CodecPro-Regular",
+    color: "#EB1194",
+    textAlign: "center",
+    fontSize: 16,
+    marginVertical: 20,
+  },
+});
 
 export default LastTransactions;

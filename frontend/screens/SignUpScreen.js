@@ -39,7 +39,6 @@ export default function SignUpScreen({ navigation }) {
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log("signUP result:", data);
           if (!data.result) {
             setLoginErrorMessage(data.error);
           } else {
@@ -56,10 +55,10 @@ export default function SignUpScreen({ navigation }) {
               })
             );
             navigation.navigate("TabNavigator", { screen: "EventsListScreen" });
-            setFirstName('');
-            setLastName('');
-            setEmail('');
-            setPassword('');
+            setFirstName("");
+            setLastName("");
+            setEmail("");
+            setPassword("");
             setIsWrongEmailFormat(false);
             setLoginErrorMessage(null);
           }

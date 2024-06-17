@@ -83,102 +83,139 @@ function addUserToGuest(user, eventId, res) {
 
 // Route qui va créer un nouvel utilisateur
 router.post("/signup", (req, res) => {
-  // On vérifie si les champs sont bien remplis
   if (!checkBody(req.body, ["firstName", "lastName", "password", "email"])) {
-    // Si les champs ne sont pas remplis, on renvoie une erreur
     res.json({ result: false, error: "Champs manquants ou vides" });
     return;
   }
-
-  // Convertion de l'email en minuscule
   const email = req.body.email.toLowerCase();
 
-  // On cherche un utilisateur avec le même email
-  User.findOne({ email: email }).then((data) => {
-    if (data !== null && data.password && data.firstName) {
-      //&& data.lastName
-      // Si un utilisateur est trouvé (email et mp ok), on renvoie une erreur
-      res.json({ result: false, error: "Compte déjà existant" });
-    } else {
-      // Si aucun utilisateur n'est trouvé, on crée un nouvel utilisateur
+  // On cherche un utilisateur avec le même email (déjà invité)
+  User.findOne({ email: email })
+    .then((data) => {
       const hash = bcrypt.hashSync(req.body.password, 10);
       const updatedUser = {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         email: email,
-        balance: 0,
         password: hash,
         token: uid2(32),
-        events: data && data.events ? data.events : [], // Vérifier que ça ne crée pas d'erreur  avec events: data && data.events ? data.events : [], ou s'il faut modifier
+        balance: 0,
+        events: data && data.events ? data.events : [],
+        transactions: data && data.transactions ? data.transactions : [],
       };
 
-      // On met à jour l'utilisateur s'il existe déjà, sinon on le crée
-      if (data !== null) {
-        User.updateOne({ _id: data._id }, updatedUser).then(() => {
-          // Une fois l'utilisateur mis à jour, on renvoie un résultat positif et le token de l'utilisateur
-          res.json({
-            result: true,
-            data: {
-              token: updatedUser.token,
-              email: updatedUser.email,
-              firstName: updatedUser.firstName,
-              balance: updatedUser.balance,
-            },
+      if (data) {
+        // Si l'utilisateur est trouvé, mettre à jour ses informations
+        User.updateOne({ _id: data._id }, updatedUser)
+          .then(() => {
+            res.json({
+              result: true,
+              data: {
+                firstName: updatedUser.firstName,
+                email: updatedUser.email,
+                token: updatedUser.token,
+                balance: updatedUser.balance,
+                events: updatedUser.events,
+                // userId: data._id,
+              },
+            });
+          })
+          .catch((error) => {
+            console.error("Error updating user:", error);
+            res.status(500).json({
+              result: false,
+              error: "Erreur lors de la mise à jour du compte",
+            });
           });
-        });
       } else {
-        // On crée un nouvel utilisateur
+        // Si aucun utilisateur n'est trouvé, créer un nouvel utilisateur
         const newUser = new User(updatedUser);
-        newUser.save().then((newDoc) => {
-          // Une fois l'utilisateur créé, on renvoie un résultat positif et le token de l'utilisateur
-          res.json({
-            result: true,
-            data: {
-              token: newDoc.token,
-              email: newDoc.email,
-              firstName: newDoc.firstName,
-              balance: newDoc.balance,
-              userId: newDoc._id,
-            },
+        newUser
+          .save()
+          .then((newDoc) => {
+            res.json({
+              result: true,
+              data: {
+                firstName: newDoc.firstName,
+                email: newDoc.email,
+                token: newDoc.token,
+                balance: newDoc.balance,
+                events: newDoc.events,
+                //userId: newDoc._id,
+              },
+            });
+          })
+          .catch((error) => {
+            console.error("Error saving user:", error);
+            res.status(500).json({
+              result: false,
+              error: "Erreur lors de la création du compte",
+            });
           });
-        });
       }
-    }
-  });
+    })
+    .catch((error) => {
+      console.error("Error finding user:", error);
+      res.status(500).json({
+        result: false,
+        error: "Erreur lors de la vérification du compte",
+      });
+    });
 });
 // route pour le login
-router.post("/signin", (req, res) => {
-  // Vérification de la présence des champs obligatoires avec le module checkBody
-  if (!checkBody(req.body, ["email", "password"])) {
-    // Si un champ est manquant ou vide, on renvoie une erreur
-    res.json({ result: false, error: "Champs manquants ou vides" });
-    // On arrête la fonction avec return pour ne pas exécuter le code qui suit si une erreur est renvoyée
-    return;
-  }
-
-  // Recherche de l'utilisateur dans la base de données
-  User.findOne({ email: { $regex: new RegExp(req.body.email, "i") } }).then(
-    (data) => {
-      // Si l'utilisateur est trouvé et que le mot de passe correspond
-      if (data && bcrypt.compareSync(req.body.password, data.password)) {
-        // Génération d'un nouveau token
-        data.token = uid2(32);
-        data.save().then(() => {
-          res.json({
-            result: true,
-            token: data.token,
-            email: data.email,
-            firstName: data.firstName,
-            balance: data.balance,
-          });
-        });
-      } else {
-        res.json({ result: false, error: "Email ou mot de passe non trouvé" });
-      }
+router.post("/signin", async (req, res) => {
+  try {
+    // Vérification de la présence des champs obligatoires avec le module checkBody
+    if (!checkBody(req.body, ["email", "password"])) {
+      // Si un champ est manquant ou vide, on renvoie une erreur
+      return res.json({ result: false, error: "Champs manquants ou vides" });
     }
-  );
+
+    // Recherche de l'utilisateur dans la base de données
+    const user = await User.findOne({
+      email: { $regex: new RegExp(req.body.email, "i") },
+    });
+
+    // Si l'utilisateur n'est pas trouvé dans la base de données
+    if (!user) {
+      return res.json({
+        result: false,
+        error: "Email ou mot de passe non trouvé",
+      });
+    }
+
+    // Vérification du mot de passe
+    const isPasswordValid = bcrypt.compareSync(
+      req.body.password,
+      user.password
+    );
+
+    if (!isPasswordValid) {
+      return res.json({
+        result: false,
+        error: "Email ou mot de passe non trouvé",
+      });
+    }
+
+    // Génération d'un nouveau token et sauvegarde dans la base de données
+    user.token = uid2(32);
+    await user.save();
+
+    // Renvoi des informations de l'utilisateur connecté
+    res.json({
+      result: true,
+      token: user.token,
+      email: user.email,
+      firstName: user.firstName,
+      balance: user.balance,
+    });
+  } catch (error) {
+    console.error("Error during signin:", error);
+    res.status(500).json({ result: false, error: "Erreur interne du serveur" });
+  }
 });
-// Route qui va déconnecter un utilisateur - non utilisée
+
+// Route qui va déconnecter un utilisateur
 router.post("/logout", (req, res) => {
   // On cherche l'utilisateur avec le token donné
   User.findOne({ token: req.body.token }).then((data) => {

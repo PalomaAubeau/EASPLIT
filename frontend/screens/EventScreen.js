@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import { KeyboardAvoidingView, StyleSheet } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Header from "../components/Common/Header";
 import WelcomeTitle from "../components/Common/WelcomeTitle";
@@ -83,7 +83,7 @@ export default function EventScreen({ route, navigation }) {
           <Text style={styles.textButton}>Tous les paiements</Text>
         </Pressable>
       </View>
-      <View>{renderSelectedComponent()}</View>
+      <View style={{ flex: 1 }}>{renderSelectedComponent()}</View>
     </LinearGradient>
   );
 }
