@@ -15,23 +15,36 @@ Authentification sécurisée avec token et hashage du mot de passe.
 
 ## Installation
 #### Cloner ou copier le code: 
-'''https://github.com/PalomaAubeau/EASPLIT.git''' 
-'''cd EASPLIT'''
+```https://github.com/PalomaAubeau/EASPLIT.git``` 
+```
+cd EASPLIT
+```
 
 #### Ouvrez deux terminaux distincts et placez-vous dedant:
-'''cd backend'''
-'''cd frontend'''
+```
+cd backend
+```
+```
+cd frontend
+```
 #### Backend
 Installez les dépendances :
-'''yarn install'''
+```
+yarn install
+```
 Démarrez le serveur :
-'''nodemon '''
+```
+nodemon
+```
 #### Frontend
 Installez les dépendances :
-'''yarn install'''
+```
+yarn install
+```
 Démarrez l'application :
-'''expo start'''
-
+```
+expo start
+```
 
 ## Utilisation
 #### Créer un compte ou connectez-vous avec un compte existant.
@@ -64,3 +77,5 @@ Donner la possibilité à chaque personne de modifier son compte (mot de passe, 
 - Imposer un format de mot de passe (incluant caractères spéciaux/chiffres…) pour obliger nos utilisateurs à mieux sécuriser leur compte (en dépit du hashage que nous fournissons)
 - Modifier la génération de token avec JWT (Json Web Token) qui semble plus complexe mais surtout plus abouti.
 - Proposer un thème sombre
+
+  ## Screenshot
