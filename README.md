@@ -58,10 +58,10 @@ Suivez les paiements effectués par les autres invités.
 Ajoutez les dépenses de l'événement que vous avez créé.
 
 ## Technologies utilisées
-React Native : Framework pour construire des applications mobiles.
-Expo : Outils et services pour le développement de React Native.
-Node.js & Express : Backend pour gérer l'API et la base de données.
-MongoDB : Base de données NoSQL pour stocker les données des utilisateurs, des événements et des transactions.
+React Native : Framework pour construire des applications mobiles.  
+Expo : Outils et services pour le développement de React Native.  
+Node.js & Express : Backend pour gérer l'API et la base de données.  
+MongoDB : Base de données NoSQL pour stocker les données des utilisateurs, des événements et des transactions.  
 
 ## Auteur
 Ce projet a été initialement développé en équipe puis repris et amélioré par Paloma Aubeau.
