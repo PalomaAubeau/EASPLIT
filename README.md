@@ -79,3 +79,7 @@ Donner la possibilité à chaque personne de modifier son compte (mot de passe, 
 - Proposer un thème sombre
 
   ## Screenshot
+  ![Présentation sans titre](https://github.com/PalomaAubeau/EASPLIT/assets/154338327/2ae2d56a-4809-4711-a667-f278decf2e0e)
+  ![Présentation sans titre (1)](https://github.com/PalomaAubeau/EASPLIT/assets/154338327/4c8db6b6-ad30-45ef-bcd3-6c76c481dead)
+
+
