@@ -2,7 +2,11 @@
 
 ## Description
 Easplit est une application mobile développée en React Native et Expo, conçue pour faciliter le partage des dépenses d'un événement entre les participants. Initialement réalisé en équipe sur une période de 9 jours, ce projet a été repris pour diviser le code en plus petits composants (architecture de l'application) et le rendre ainsi plus lisible et maintenable (hors CreateScreen); mais aussi corriger certains bugs.  
-### Certaines évolutions pourraient être envisagées. Celles-ci sont notifiées plus bas.
+Certaines évolutions pourraient être envisagées. Celles-ci sont notifiées plus bas.
+  
+Vous pouvez retrouveer l'application déployée sur ExpoGo en scannant le QRcode suivant (sur Expo):
+![Capture d’écran 2024-06-19 à 11 38 24](https://github.com/PalomaAubeau/EASPLIT/assets/154338327/2d8eb6cb-a2a6-402d-952d-91de0f18aa67)
+
 
 ## Fonctionnalités
 #### Gestion des événements : 
