@@ -1,7 +1,8 @@
 # EASPLIT
 
 ## Description
-Easplit est une application mobile développée en React Native et Expo, conçue pour faciliter le partage des dépenses d'un événement entre les participants. Initialement réalisé en équipe sur une période de 9 jours, ce projet a été repris pour “nettoyer” le code, corriger certains bugs et le rendre plus maintenable. Certaines évolutions pourraient être envisagées. Celles-ci sont notifiées plus bas.
+Easplit est une application mobile développée en React Native et Expo, conçue pour faciliter le partage des dépenses d'un événement entre les participants. Initialement réalisé en équipe sur une période de 9 jours, ce projet a été repris pour diviser le code en plus petits composants (architecture de l'application) et le rendre ainsi plus lisible et maintenable (hors CreateScreen); mais aussi corriger certains bugs.  
+### Certaines évolutions pourraient être envisagées. Celles-ci sont notifiées plus bas.
 
 ## Fonctionnalités
 #### Gestion des événements : 
@@ -72,7 +73,7 @@ Donner la possibilité à chaque personne de modifier son compte (mot de passe, 
 - Ajouter la visualisation des informations de l’événement (date, date limite de participation, informations données dans la description)
 - Donner la possibilité d’ajouter des invités après la création de l’événement (et réajuster le budget initial en fonction pour garder le montant par part identique - surtout si les autres invités ont déjà payé leur part)
 - Ajouter un branchement vers une API de paiement sécurisée (Stripe par exemple, qui propose un service de test gratuit)
-- Possibilité de remboursement des invités à la fin de l’événement en fonction du budget restant.
+- Rembourser les invités à la fin de l’événement en fonction du budget restant.
 - Ajouter la possibilité de se connecter avec Google
 - Imposer un format de mot de passe (incluant caractères spéciaux/chiffres…) pour obliger nos utilisateurs à mieux sécuriser leur compte (en dépit du hashage que nous fournissons)
 - Modifier la génération de token avec JWT (Json Web Token) qui semble plus complexe mais surtout plus abouti.
