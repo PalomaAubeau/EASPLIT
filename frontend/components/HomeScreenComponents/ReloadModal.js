@@ -142,14 +142,14 @@ const styles = StyleSheet.create({
     fontFamily: "CodecPro-Regular",
     fontSize: 16,
     marginTop: 5,
-    height: 32, // container dans react native ne s'adapte pas toujours au contenu
+    height: 32,
   },
   input: {
     fontFamily: "CodecPro-ExtraBold",
     width: 180,
     borderBottomColor: "#4E3CBB",
-    alignItems: "center", // fonctionne maintenant
-    justifyContent: "center", // fonctionne maintenant
+    alignItems: "center",
+    justifyContent: "center",
     borderBottomWidth: 1,
     marginBottom: 40,
     marginTop: 30,

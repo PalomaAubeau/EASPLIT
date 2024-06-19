@@ -12,7 +12,6 @@ import { useDispatch } from "react-redux";
 import { login } from "../reducers/user";
 import React, { useState } from "react";
 import { PATH } from "../utils/path";
-//Import de Linear-Gradient pour le dégradé
 import { LinearGradient } from "expo-linear-gradient";
 
 export default function SigninScreen({ navigation }) {
@@ -55,9 +54,8 @@ export default function SigninScreen({ navigation }) {
 
   //3.RETURN FINAL
   return (
-    // composant linear gradient qui permet d'avoir le fond en dégradé : doit tout envelopper
     <LinearGradient
-      colors={["white", "#CAD1E0"]} //Gradient blanc vers bleu
+      colors={["white", "#CAD1E0"]}
       start={[0.2, 0.2]}
       end={[0.8, 0.8]}
       style={styles.container}
@@ -117,7 +115,7 @@ export default function SigninScreen({ navigation }) {
             activeOpacity={0.8}
           >
             <LinearGradient
-              colors={["#EB1194", "#4E3CBB"]} //Gradient rose vers violet
+              colors={["#EB1194", "#4E3CBB"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.gradientBackground}
@@ -139,7 +137,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // style du bouton :
   buttonContainer: {
     display: "flex",
     width: 180,
@@ -166,11 +163,10 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 13,
     fontFamily: "CodecPro-ExtraBold",
-    // fontWeight:"600",
+
     lineHeight: 28,
     letterSpacing: 0.15,
   },
-  // fin du style du bouton
   logo: {
     flex: 0.18,
     justifyContent: "center",

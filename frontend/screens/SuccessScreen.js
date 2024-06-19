@@ -3,13 +3,11 @@ import {
   Platform,
   Text,
   KeyboardAvoidingView,
-  TextInput,
   TouchableOpacity,
   Image,
 } from "react-native";
 import { StyleSheet } from "react-native";
 import globalStyles from "../styles/globalStyles";
-import React, { useState } from "react";
 import MaskedView from "@react-native-masked-view/masked-view";
 
 import { LinearGradient } from "expo-linear-gradient";
@@ -52,7 +50,7 @@ export default function SuccessScreen({ navigation }) {
             activeOpacity={0.8}
           >
             <LinearGradient
-              colors={["#EB1194", "#4E3CBB"]} //Gradient rose vers violet
+              colors={["#EB1194", "#4E3CBB"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.gradientBackground}

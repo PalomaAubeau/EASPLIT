@@ -34,15 +34,11 @@ router.get("/expenses/:eventId", async (req, res) => {
 
 // Route pour créer une dépense
 router.post("/expense", (req, res) => {
-  // Vérification du corps de la requête
   if (!checkBody(req.body, ["emitter", "amount", "type"])) {
     return res.status(400).json({ error: "Corps invalide" });
   }
-  // Création de la transaction
   const transaction = new Transaction(req.body);
-  // Sauvegarde de la transaction
   transaction.save().then(() => {
-    // Update the event's balance and add the transaction
     Event.findByIdAndUpdate(
       req.body.emitter,
       {
@@ -51,11 +47,10 @@ router.post("/expense", (req, res) => {
       },
       { new: true }
     ).then((event) => {
-      // Vérification de l'existence de l'événement
       if (!event) {
         return res.status(400).json({ error: "Événement non trouvé" });
       }
-      // Vérification du solde de l'événement
+
       if (event.totalSum < 0) {
         return res.status(400).json({ error: "Fonds insuffisants" });
       }
@@ -70,16 +65,13 @@ router.get("/user-transactions/:token", async (req, res) => {
     const user = await User.findOne({ token: req.params.token }).populate(
       "transactions"
     );
-    // Vérification de l'existence de l'utilisateur
     if (!user) {
       return res.json({ response: false, error: "Utilisateur non trouvé" });
     }
     // Inverser l'ordre des transactions
     const reversedTransactions = user.transactions.reverse();
-    // Renvoi des transactions de l'utilisateur
     res.json({ response: true, transactions: reversedTransactions });
   } catch (error) {
-    // Gestion des erreurs
     res.json({ response: false, error: error.message });
   }
 });
@@ -121,7 +113,6 @@ router.post("/payment", async (req, res) => {
       return;
     }
     const balanceSetForUser = user.balance - Number(userDue);
-    // Création de la transaction
     const userPayment = new Transaction({
       amount: userDue,
       type,

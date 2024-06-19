@@ -18,7 +18,7 @@ const EventsList = ({ children, user, isSlice = false }) => {
   useEffect(() => {
     const fetchEvents = async () => {
       const events = await getUserEvents(user.token);
-      const revertedEvents = [...events].reverse();
+      const revertedEvents = [...events].reverse(); // Pour éviter les effets de bords avec la méthode .reverse(), bien garder [...events], plutôt que juste events.reverse()
       setEventsList(isSlice ? sliceList(revertedEvents) : revertedEvents);
     };
 

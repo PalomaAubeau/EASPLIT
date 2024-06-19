@@ -10,7 +10,7 @@ const bcrypt = require("bcrypt");
 const uid2 = require("uid2");
 const nodemailer = require("nodemailer");
 
-// Fonction pour ajouter un utilisateur à la liste des invités d'un événement - non utilisée
+// NON UTILISEE - Fonction pour ajouter un utilisateur à la liste des invités d'un événement
 function addUserToGuest(user, eventId, res) {
   const mailString = process.env.MAIL_STRING;
   // On cherche l'événement avec l'ID donné
@@ -165,18 +165,13 @@ router.post("/signup", (req, res) => {
 // route pour le login
 router.post("/signin", async (req, res) => {
   try {
-    // Vérification de la présence des champs obligatoires avec le module checkBody
     if (!checkBody(req.body, ["email", "password"])) {
-      // Si un champ est manquant ou vide, on renvoie une erreur
       return res.json({ result: false, error: "Champs manquants ou vides" });
     }
-
-    // Recherche de l'utilisateur dans la base de données
     const user = await User.findOne({
       email: { $regex: new RegExp(req.body.email, "i") },
     });
 
-    // Si l'utilisateur n'est pas trouvé dans la base de données
     if (!user) {
       return res.json({
         result: false,
@@ -184,7 +179,7 @@ router.post("/signin", async (req, res) => {
       });
     }
 
-    // Vérification du mot de passe
+    // Vérification du mot de passe à part
     const isPasswordValid = bcrypt.compareSync(
       req.body.password,
       user.password
@@ -201,7 +196,6 @@ router.post("/signin", async (req, res) => {
     user.token = uid2(32);
     await user.save();
 
-    // Renvoi des informations de l'utilisateur connecté
     res.json({
       result: true,
       token: user.token,
@@ -217,15 +211,12 @@ router.post("/signin", async (req, res) => {
 
 // Route qui va déconnecter un utilisateur
 router.post("/logout", (req, res) => {
-  // On cherche l'utilisateur avec le token donné
   User.findOne({ token: req.body.token }).then((data) => {
-    // Si l'utilisateur est trouvé, on supprime le token afin de le déconnecter
     if (data) {
       data.token = "";
       data.save().then(() => {
         res.json({ result: true });
       });
-      // Si l'utilisateur n'est pas trouvé, on renvoie une erreur
     } else {
       res.json({ result: false, error: "Utilisateur non trouvé" });
     }
@@ -247,7 +238,5 @@ router.get("/getbalance/:token", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
-// module.exports = { addUserToGuest };
 
 module.exports = router;

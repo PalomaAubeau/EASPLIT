@@ -8,12 +8,12 @@ import {
   Image,
 } from "react-native";
 import { StyleSheet } from "react-native";
-import globalStyles from "../styles/globalStyles"; //Appel des styles globaux
+import globalStyles from "../styles/globalStyles";
 import { useDispatch } from "react-redux";
 import React, { useState } from "react";
 import { login } from "../reducers/user";
 import { PATH } from "../utils/path";
-//Import de Linear-Gradient pour le dégradé
+
 import { LinearGradient } from "expo-linear-gradient";
 
 const EMAIL_REGEX =
@@ -43,7 +43,6 @@ export default function SignUpScreen({ navigation }) {
             setLoginErrorMessage(data.error);
           } else {
             const signUpUser = data.data;
-            //console.log(signUpUser);
             dispatch(
               login({
                 firstName: signUpUser.firstName,
@@ -126,21 +125,6 @@ export default function SignUpScreen({ navigation }) {
           {loginErrorMessage && (
             <Text style={globalStyles.error}>{loginErrorMessage}</Text>
           )}
-          {/* <TouchableOpacity
-          onPress={() => handleSubmit()}
-          style={globalStyles.button}
-          activeOpacity={0.8}
-        >
-          <LinearGradient
-              colors={["#EB1194", "#4E3CBB"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.gradientBackground}>
-
-          <Text style={globalStyles.textButton}>C'est parti!</Text>
-              </LinearGradient>
-        </TouchableOpacity> */}
-
           <TouchableOpacity
             onPress={() => handleSubmit()}
             style={globalStyles.buttonContainer}
